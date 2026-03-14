@@ -11,14 +11,16 @@ interface PrintOrderProps {
     address: string;
     phone: string;
     email: string;
+    logo_url?: string;
   };
 }
 
 const defaultCompany = {
   name: 'TechAssist — Assistência Técnica',
-  address: 'Rua Exemplo, 123 — Centro — São Paulo/SP — CEP 01001-000',
-  phone: '(11) 99999-0000',
-  email: 'contato@techassist.com.br',
+  address: '',
+  phone: '',
+  email: '',
+  logo_url: '',
 };
 
 export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
@@ -26,7 +28,7 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
     const statusLabel = statusLabels[order.status as OrderStatus] || order.status;
     const today = new Date().toLocaleDateString('pt-BR');
     const valor = Number(order.valor);
-    const custosPecas = 0; // placeholder
+    const custosPecas = 0;
     const desconto = 0;
     const total = valor + custosPecas - desconto;
 
@@ -36,11 +38,20 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
 
           {/* === HEADER === */}
           <div className="print-section print-header flex justify-between items-start border-b-2 border-foreground pb-4">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">{companyInfo.name}</h1>
-              <p className="text-xs text-muted-foreground mt-1">{companyInfo.address}</p>
-              <p className="text-xs text-muted-foreground">Tel: {companyInfo.phone} · {companyInfo.email}</p>
-              <p className="text-xs text-muted-foreground mt-1">Data de emissão: {today}</p>
+            <div className="flex items-start gap-3">
+              {companyInfo.logo_url && (
+                <img src={companyInfo.logo_url} alt="Logo" className="w-12 h-12 object-contain rounded-md" />
+              )}
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">{companyInfo.name}</h1>
+                {companyInfo.address && <p className="text-xs text-muted-foreground mt-1">{companyInfo.address}</p>}
+                <p className="text-xs text-muted-foreground">
+                  {companyInfo.phone && `Tel: ${companyInfo.phone}`}
+                  {companyInfo.phone && companyInfo.email && ' · '}
+                  {companyInfo.email}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Data de emissão: {today}</p>
+              </div>
             </div>
             <div className="text-right">
               <p className="section-title mb-1">Ordem de Serviço</p>
@@ -59,8 +70,6 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
             <div className="grid grid-cols-2 gap-x-8 gap-y-2">
               <Field label="Nome" value={order.cliente} />
               <Field label="Telefone" value={order.telefone} />
-              <Field label="Email" value="—" />
-              <Field label="Endereço" value="—" />
             </div>
           </div>
 
@@ -71,8 +80,6 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
               <Field label="Tipo" value={order.aparelho} />
               <Field label="Marca" value={order.marca} />
               <Field label="Modelo" value={order.modelo} />
-              <Field label="IMEI / Nº Série" value="—" />
-              <Field label="Acessórios Entregues" value="—" colSpan={2} />
             </div>
           </div>
 
@@ -87,24 +94,9 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
           {/* === DIAGNOSIS === */}
           <div className="print-section">
             <h2 className="section-title mb-3 pb-1 border-b border-border">Diagnóstico Técnico</h2>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="surface-elevated rounded-md p-3 min-h-[50px] text-sm">
-                <span className="text-xs text-muted-foreground block mb-1">Análise / Causa do problema:</span>
-                {order.observacoes || '—'}
-              </div>
-              <div className="surface-elevated rounded-md p-3 min-h-[30px] text-sm">
-                <span className="text-xs text-muted-foreground block mb-1">Peças necessárias:</span>
-                —
-              </div>
-            </div>
-          </div>
-
-          {/* === SERVICE PERFORMED === */}
-          <div className="print-section">
-            <h2 className="section-title mb-3 pb-1 border-b border-border">Serviço Executado</h2>
             <div className="surface-elevated rounded-md p-3 min-h-[50px] text-sm">
-              <span className="text-xs text-muted-foreground block mb-1">Reparo realizado / Peças trocadas / Procedimentos:</span>
-              —
+              <span className="text-xs text-muted-foreground block mb-1">Análise / Causa do problema:</span>
+              {order.observacoes || '—'}
             </div>
           </div>
 
@@ -113,9 +105,7 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
             <h2 className="section-title mb-3 pb-1 border-b border-border">Controle da Manutenção</h2>
             <div className="grid grid-cols-3 gap-x-8 gap-y-2">
               <Field label="Técnico Responsável" value={order.tecnico} />
-              <Field label="Data de Início" value={order.hora_inicio ? new Date(order.data_entrada).toLocaleDateString('pt-BR') : '—'} />
               <Field label="Hora de Início" value={order.hora_inicio || '—'} />
-              <Field label="Data de Conclusão" value={order.hora_final ? today : '—'} />
               <Field label="Hora de Finalização" value={order.hora_final || '—'} />
               <Field label="Status Final" value={statusLabel} />
             </div>
@@ -184,7 +174,13 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
           <div className="print-section border-t border-border pt-4 mt-8 text-center">
             <p className="text-xs text-muted-foreground italic">"Obrigado por confiar em nossa assistência técnica."</p>
             <p className="text-xs text-muted-foreground mt-1 font-medium">{companyInfo.name}</p>
-            <p className="text-xs text-muted-foreground">Tel: {companyInfo.phone} · {companyInfo.email}</p>
+            {(companyInfo.phone || companyInfo.email) && (
+              <p className="text-xs text-muted-foreground">
+                {companyInfo.phone && `Tel: ${companyInfo.phone}`}
+                {companyInfo.phone && companyInfo.email && ' · '}
+                {companyInfo.email}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -194,9 +190,9 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
 
 PrintOrderView.displayName = 'PrintOrderView';
 
-function Field({ label, value, colSpan }: { label: string; value: string; colSpan?: number }) {
+function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div className={colSpan ? `col-span-${colSpan}` : ''}>
+    <div>
       <p className="text-xs text-muted-foreground">{label}:</p>
       <p className="text-sm font-medium">{value || '—'}</p>
     </div>
