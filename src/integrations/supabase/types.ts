@@ -14,8 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      company_settings: {
+        Row: {
+          created_at: string
+          custo_fixo_mensal: number
+          email_empresa: string
+          endereco_empresa: string
+          id: string
+          logo_url: string
+          margem_custo_percentual: number
+          nome_empresa: string
+          telefone_empresa: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custo_fixo_mensal?: number
+          email_empresa?: string
+          endereco_empresa?: string
+          id?: string
+          logo_url?: string
+          margem_custo_percentual?: number
+          nome_empresa?: string
+          telefone_empresa?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custo_fixo_mensal?: number
+          email_empresa?: string
+          endereco_empresa?: string
+          id?: string
+          logo_url?: string
+          margem_custo_percentual?: number
+          nome_empresa?: string
+          telefone_empresa?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          avatar_url: string
           cor_tema: string
           created_at: string
           email: string
@@ -25,6 +68,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_url?: string
           cor_tema?: string
           created_at?: string
           email?: string
@@ -34,6 +78,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_url?: string
           cor_tema?: string
           created_at?: string
           email?: string
