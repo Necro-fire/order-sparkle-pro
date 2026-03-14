@@ -1,10 +1,15 @@
-import { ClipboardList, Clock, CheckCircle, DollarSign, AlertCircle, TrendingUp, Shield } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ClipboardList, Clock, CheckCircle, DollarSign, TrendingUp } from 'lucide-react';
 import { useOrders } from '@/contexts/OrdersContext';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { StatusBadge } from '@/components/StatusBadge';
-import { monthlyRevenue, type OrderStatus } from '@/lib/mock-data';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
+import { DateRangeFilter, getDefaultDateRange, type DateRange } from '@/components/DateRangeFilter';
+import { type OrderStatus } from '@/lib/mock-data';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { format, parseISO, isWithinInterval, startOfMonth, eachMonthOfInterval } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const anim = (i: number) => ({
   initial: { opacity: 0, y: 12 },
@@ -18,97 +23,94 @@ const tooltipStyle = {
 
 export default function Dashboard() {
   const { orders } = useOrders();
+  const { settings } = useCompanySettings();
   const navigate = useNavigate();
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
 
-  const pendentes = orders.filter(o => o.status === 'pendente').length;
-  const manutencao = orders.filter(o => o.status === 'em_manutencao').length;
-  const finalizados = orders.filter(o => o.status === 'finalizado').length;
-  const receitaTotal = orders.filter(o => o.status === 'finalizado').reduce((s, o) => s + Number(o.valor), 0);
-  const receitaMesAnterior = monthlyRevenue[monthlyRevenue.length - 2]?.valor || 1;
-  const receitaMes = monthlyRevenue[monthlyRevenue.length - 1]?.valor || 0;
-  const crescimento = ((receitaMes - receitaMesAnterior) / receitaMesAnterior * 100).toFixed(1);
+  const filtered = useMemo(() => orders.filter(o => {
+    const d = parseISO(o.data_entrada);
+    return isWithinInterval(d, { start: dateRange.from, end: dateRange.to });
+  }), [orders, dateRange]);
 
-  // Pie chart data
+  const pendentes = filtered.filter(o => o.status === 'pendente').length;
+  const manutencao = filtered.filter(o => o.status === 'em_manutencao').length;
+  const finalizados = filtered.filter(o => o.status === 'finalizado');
+  const receitaTotal = finalizados.reduce((s, o) => s + Number(o.valor), 0);
+  const margemPct = settings.margem_custo_percentual / 100;
+  const custosOp = receitaTotal * margemPct + settings.custo_fixo_mensal;
+  const lucro = receitaTotal - custosOp;
+
+  // Monthly revenue from real data
+  const monthlyData = useMemo(() => {
+    const months = eachMonthOfInterval({ start: dateRange.from, end: dateRange.to });
+    return months.map(m => {
+      const label = format(m, 'MMM', { locale: ptBR });
+      const monthOrders = finalizados.filter(o => {
+        const d = parseISO(o.data_entrada);
+        return d.getMonth() === m.getMonth() && d.getFullYear() === m.getFullYear();
+      });
+      return { month: label.charAt(0).toUpperCase() + label.slice(1), valor: monthOrders.reduce((s, o) => s + Number(o.valor), 0) };
+    });
+  }, [finalizados, dateRange]);
+
   const statusPieData = [
-    { name: 'Pendente', value: pendentes || 1, color: 'hsl(45, 93%, 47%)' },
-    { name: 'Em Manutenção', value: manutencao || 1, color: 'hsl(217, 91%, 60%)' },
-    { name: 'Finalizado', value: finalizados || 1, color: 'hsl(142, 71%, 45%)' },
-  ];
+    { name: 'Pendente', value: pendentes, color: 'hsl(45, 93%, 47%)' },
+    { name: 'Em Manutenção', value: manutencao, color: 'hsl(217, 91%, 60%)' },
+    { name: 'Finalizado', value: finalizados.length, color: 'hsl(142, 71%, 45%)' },
+  ].filter(d => d.value > 0);
 
-  // Top services mock
-  const topServices = [
-    { name: 'Reparo Tela', value: Math.max(finalizados * 2, 3) },
-    { name: 'Bateria', value: Math.max(finalizados, 2) },
-    { name: 'Placa', value: Math.max(Math.floor(finalizados * 0.5), 1) },
-  ];
-
-  const recentOrders = orders.slice(0, 5);
+  const recentOrders = filtered.slice(0, 5);
+  const companyName = settings.nome_empresa || 'Assistência Técnica';
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight uppercase">Assistência Técnica — Controle</h1>
+          <h1 className="text-lg font-semibold tracking-tight uppercase">{companyName} — Controle</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Visão geral do sistema</p>
         </div>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Row 1: Financial Summary + Operational Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Financial Summary */}
         <motion.div className="lg:col-span-2 card-accent rounded-lg p-5" {...anim(0)}>
-          <h3 className="section-title mb-4">Resumo Financeiro do Mês</h3>
+          <h3 className="section-title mb-4">Resumo Financeiro</h3>
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Faturamento Total:</p>
               <p className="text-2xl font-bold tabular-nums">R$ {receitaTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-              <p className="text-xs text-status-completed mt-1 tabular-nums flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />+{crescimento}% vs Mês Ant.
-              </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1">Custos Operacionais:</p>
-              <p className="text-2xl font-bold tabular-nums text-status-pending">R$ {(receitaTotal * 0.37).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <p className="text-2xl font-bold tabular-nums text-status-pending">R$ {custosOp.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Margem: {settings.margem_custo_percentual}% + R$ {settings.custo_fixo_mensal.toLocaleString('pt-BR')}/mês</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1">Lucro Líquido:</p>
-              <p className="text-2xl font-bold tabular-nums text-status-completed">R$ {(receitaTotal * 0.63).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <p className={`text-2xl font-bold tabular-nums ${lucro >= 0 ? 'text-status-completed' : 'text-destructive'}`}>R$ {lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Operational Stats */}
         <motion.div className="card-accent rounded-lg p-5" {...anim(1)}>
           <h3 className="section-title mb-4">Estatísticas Operacionais</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">O.S. Criadas:</p>
-                <p className="text-xl font-bold tabular-nums">{orders.length}</p>
-              </div>
+              <div><p className="text-xs text-muted-foreground">O.S. Criadas:</p><p className="text-xl font-bold tabular-nums">{filtered.length}</p></div>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-status-pending" />
-              <div>
-                <p className="text-xs text-muted-foreground">O.S. Pendentes:</p>
-                <p className="text-xl font-bold tabular-nums">{pendentes}</p>
-              </div>
+              <div><p className="text-xs text-muted-foreground">Pendentes:</p><p className="text-xl font-bold tabular-nums">{pendentes}</p></div>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-status-completed" />
-              <div>
-                <p className="text-xs text-muted-foreground">O.S. Concluídas:</p>
-                <p className="text-xl font-bold tabular-nums">{finalizados}</p>
-              </div>
+              <div><p className="text-xs text-muted-foreground">Concluídas:</p><p className="text-xl font-bold tabular-nums">{finalizados.length}</p></div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-destructive" />
-              <div>
-                <p className="text-xs text-muted-foreground">Reparos Garantia:</p>
-                <p className="text-xl font-bold tabular-nums">0</p>
-              </div>
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <div><p className="text-xs text-muted-foreground">Em Manutenção:</p><p className="text-xl font-bold tabular-nums">{manutencao}</p></div>
             </div>
           </div>
         </motion.div>
@@ -116,77 +118,49 @@ export default function Dashboard() {
 
       {/* Row 2: Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Cash Flow Chart */}
-        <motion.div className="lg:col-span-5 card-accent-subtle rounded-lg p-5" {...anim(2)}>
-          <h3 className="section-title mb-4">Fluxo de Caixa Mensal</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={monthlyRevenue}>
-              <defs>
-                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'hsl(240,5%,55%)' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: 'hsl(240,5%,55%)' }} axisLine={false} tickLine={false} tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} />
-              <Tooltip {...tooltipStyle} formatter={(v: number) => [`R$ ${v.toLocaleString('pt-BR')}`, 'Receita']} />
-              <Area type="monotone" dataKey="valor" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revenueGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
+        <motion.div className="lg:col-span-8 card-accent-subtle rounded-lg p-5" {...anim(2)}>
+          <h3 className="section-title mb-4">Receita por Mês (Serviços Finalizados)</h3>
+          {monthlyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'hsl(240,5%,55%)' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: 'hsl(240,5%,55%)' }} axisLine={false} tickLine={false} tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} />
+                <Tooltip {...tooltipStyle} formatter={(v: number) => [`R$ ${v.toLocaleString('pt-BR')}`, 'Receita']} />
+                <Area type="monotone" dataKey="valor" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revenueGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Sem dados no período selecionado.</div>
+          )}
         </motion.div>
 
-        {/* Top Services */}
-        <motion.div className="lg:col-span-3 card-accent-subtle rounded-lg p-5" {...anim(3)}>
-          <h3 className="section-title mb-4">Top Serviços</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={topServices}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="name" tick={{ fontSize: 9, fill: 'hsl(240,5%,55%)' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: 'hsl(240,5%,55%)' }} axisLine={false} tickLine={false} />
-              <Tooltip {...tooltipStyle} />
-              <Bar dataKey="value" radius={[3, 3, 0, 0]} barSize={28}>
-                <Cell fill="hsl(var(--primary))" />
-                <Cell fill="hsl(var(--chart-2))" />
-                <Cell fill="hsl(var(--chart-3))" />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Status Pie Chart */}
-        <motion.div className="lg:col-span-4 card-accent-subtle rounded-lg p-5" {...anim(4)}>
+        <motion.div className="lg:col-span-4 card-accent-subtle rounded-lg p-5" {...anim(3)}>
           <h3 className="section-title mb-2">Status das O.S.</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={statusPieData}
-                cx="50%"
-                cy="45%"
-                innerRadius={50}
-                outerRadius={75}
-                paddingAngle={3}
-                dataKey="value"
-                stroke="none"
-              >
-                {statusPieData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Legend
-                verticalAlign="bottom"
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: 10, color: 'hsl(240,5%,65%)' }}
-              />
-              <Tooltip {...tooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
+          {statusPieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={statusPieData} cx="50%" cy="45%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value" stroke="none">
+                  {statusPieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Legend verticalAlign="bottom" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, color: 'hsl(240,5%,65%)' }} />
+                <Tooltip {...tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Sem ordens no período.</div>
+          )}
         </motion.div>
       </div>
 
-      {/* Row 3: Recent Orders Table */}
-      <motion.div className="card-accent-subtle rounded-lg" {...anim(5)}>
+      {/* Row 3: Recent Orders */}
+      <motion.div className="card-accent-subtle rounded-lg" {...anim(4)}>
         <div className="p-4 flex items-center justify-between">
           <h3 className="section-title">Últimas Ordens de Serviço</h3>
           <button onClick={() => navigate('/ordens')} className="text-xs text-primary hover:underline">Ver todas →</button>
@@ -218,7 +192,7 @@ export default function Dashboard() {
           </table>
         </div>
         {recentOrders.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground text-sm">Nenhuma ordem cadastrada. Clique em "Nova OS" para começar.</div>
+          <div className="text-center py-12 text-muted-foreground text-sm">Nenhuma ordem no período selecionado.</div>
         )}
       </motion.div>
     </div>
