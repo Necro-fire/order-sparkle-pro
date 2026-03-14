@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Wrench, Eye, EyeOff, Mail, Lock, User, ArrowRight, ChevronRight } from 'lucide-react';
@@ -13,14 +13,9 @@ import { toast } from 'sonner';
 function DashboardBackground() {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden select-none pointer-events-none">
-      {/* Dark overlay */}
       <div className="absolute inset-0 bg-background/80 z-10" />
-      {/* Blur layer */}
       <div className="absolute inset-0 backdrop-blur-[6px] z-10" />
-
-      {/* Fake dashboard content */}
       <div className="absolute inset-0 p-4 flex gap-4" style={{ filter: 'blur(4px)', opacity: 0.35 }}>
-        {/* Sidebar */}
         <div className="w-56 shrink-0 rounded-lg bg-surface-1 flex flex-col gap-3 p-4">
           <div className="h-8 w-28 rounded bg-surface-2" />
           <div className="h-6 w-full rounded bg-surface-2 mt-4" />
@@ -31,17 +26,12 @@ function DashboardBackground() {
           <div className="flex-1" />
           <div className="h-8 w-full rounded bg-surface-2" />
         </div>
-
-        {/* Main area */}
         <div className="flex-1 flex flex-col gap-4">
-          {/* Top bar */}
           <div className="h-12 rounded-lg bg-surface-1 flex items-center px-4 gap-3">
             <div className="h-6 w-48 rounded bg-surface-2" />
             <div className="flex-1" />
             <div className="h-8 w-8 rounded-full bg-surface-2" />
           </div>
-
-          {/* Stat cards */}
           <div className="grid grid-cols-4 gap-3">
             {[0,1,2,3].map(i => (
               <div key={i} className="rounded-lg bg-surface-1 p-4 flex flex-col gap-2">
@@ -51,8 +41,6 @@ function DashboardBackground() {
               </div>
             ))}
           </div>
-
-          {/* Charts */}
           <div className="flex gap-3 flex-1 min-h-0">
             <div className="flex-1 rounded-lg bg-surface-1 p-4">
               <div className="h-4 w-24 rounded bg-surface-2 mb-3" />
@@ -64,11 +52,7 @@ function DashboardBackground() {
             </div>
             <div className="w-72 rounded-lg bg-surface-1 p-4 flex flex-col gap-2">
               <div className="h-4 w-20 rounded bg-surface-2 mb-2" />
-              <div className="h-6 w-full rounded bg-surface-2" />
-              <div className="h-6 w-full rounded bg-surface-2" />
-              <div className="h-6 w-3/4 rounded bg-surface-2" />
-              <div className="h-6 w-full rounded bg-surface-2" />
-              <div className="h-6 w-5/6 rounded bg-surface-2" />
+              {[1,2,3,4,5].map(i => <div key={i} className="h-6 w-full rounded bg-surface-2" />)}
             </div>
           </div>
         </div>
@@ -77,7 +61,6 @@ function DashboardBackground() {
   );
 }
 
-/* ─── Beta badge ─── */
 function BetaBadge() {
   return (
     <motion.div
@@ -87,15 +70,12 @@ function BetaBadge() {
       className="fixed top-5 left-5 z-50"
     >
       <div className="px-3 py-1.5 rounded-md bg-primary/15 border border-primary/25 backdrop-blur-sm shadow-lg">
-        <span className="text-[11px] font-semibold tracking-widest uppercase text-primary">
-          Versão Beta
-        </span>
+        <span className="text-[11px] font-semibold tracking-widest uppercase text-primary">Versão Beta</span>
       </div>
     </motion.div>
   );
 }
 
-/* ─── Main component ─── */
 export default function LoginPage() {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
@@ -103,12 +83,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Login fields
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [remember, setRemember] = useState(false);
 
-  // Register fields
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
@@ -138,10 +116,7 @@ export default function LoginPage() {
     setIsLogin(true);
   };
 
-  const toggle = () => {
-    setIsLogin(prev => !prev);
-    setShowPassword(false);
-  };
+  const toggle = () => { setIsLogin(prev => !prev); setShowPassword(false); };
 
   const inputCls = "bg-background/50 border-border/50 placeholder:text-muted-foreground/50 focus:border-primary/50 transition-colors duration-200";
 
@@ -150,7 +125,6 @@ export default function LoginPage() {
       <DashboardBackground />
       <BetaBadge />
 
-      {/* Central card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -162,30 +136,17 @@ export default function LoginPage() {
           border: '1px solid hsl(var(--border) / 0.4)',
         }}
       >
-        <div className="flex min-h-[520px] relative">
-          {/* ─── Sliding overlay panel ─── */}
+        <div className="flex flex-col md:flex-row min-h-[520px] relative">
+          {/* ─── Sliding overlay (desktop) ─── */}
           <motion.div
-            layout
             className="absolute top-0 bottom-0 w-1/2 z-30 hidden md:flex flex-col items-center justify-center p-10 text-center"
-            animate={{ x: isLogin ? 0 : '100%' }}
+            animate={{ left: isLogin ? 0 : '50%' }}
             transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))',
-            }}
+            style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))' }}
           >
-            {/* Decorative lines */}
             <div className="absolute inset-0 overflow-hidden opacity-10">
               {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute h-px bg-white/80"
-                  style={{
-                    top: `${15 + i * 12}%`,
-                    left: '-10%',
-                    right: '-10%',
-                    transform: `rotate(${-15 + i * 4}deg)`,
-                  }}
-                />
+                <div key={i} className="absolute h-px bg-white/80" style={{ top: `${15 + i * 12}%`, left: '-10%', right: '-10%', transform: `rotate(${-15 + i * 4}deg)` }} />
               ))}
               <div className="absolute w-32 h-32 rounded-full border border-white/20 top-8 -right-10" />
               <div className="absolute w-48 h-48 rounded-full border border-white/15 -bottom-12 -left-16" />
@@ -193,7 +154,7 @@ export default function LoginPage() {
 
             <AnimatePresence mode="wait">
               <motion.div
-                key={isLogin ? 'login-panel' : 'register-panel'}
+                key={isLogin ? 'lp' : 'rp'}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
@@ -223,200 +184,121 @@ export default function LoginPage() {
             </AnimatePresence>
           </motion.div>
 
-          {/* ─── Login form ─── */}
-          <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-10">
+          {/* ─── Left half: shows REGISTER when overlay slides right ─── */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-10 relative z-10">
             <AnimatePresence mode="wait">
-              {isLogin && (
+              {!isLogin && (
                 <motion.div
-                  key="login-form"
+                  key="register-form"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.35 }}
                 >
-                  {/* Mobile logo */}
                   <div className="flex items-center gap-2.5 mb-6 md:hidden">
                     <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                       <Wrench className="w-4 h-4 text-primary-foreground" strokeWidth={1.5} />
                     </div>
                     <span className="font-semibold tracking-tight">TechAssist</span>
                   </div>
-
-                  <h3 className="text-xl font-bold tracking-tight mb-1">Login</h3>
-                  <p className="text-sm text-muted-foreground mb-6">Acesse o sistema de gestão.</p>
-
-                  <form onSubmit={handleLogin} className="space-y-4">
+                  <h3 className="text-xl font-bold tracking-tight mb-1">Criar Conta</h3>
+                  <p className="text-sm text-muted-foreground mb-6">Registre-se para acessar o sistema.</p>
+                  <form onSubmit={handleRegister} className="space-y-3.5">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Nome completo</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                        <Input value={regName} onChange={e => setRegName(e.target.value)} className={`pl-9 ${inputCls}`} placeholder="Seu nome" />
+                      </div>
+                    </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Email</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                        <Input
-                          type="email"
-                          value={loginEmail}
-                          onChange={e => setLoginEmail(e.target.value)}
-                          className={`pl-9 ${inputCls}`}
-                          placeholder="seu@email.com"
-                        />
+                        <Input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} className={`pl-9 ${inputCls}`} placeholder="seu@email.com" />
                       </div>
                     </div>
-
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Senha</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          value={loginPassword}
-                          onChange={e => setLoginPassword(e.target.value)}
-                          className={`pl-9 pr-10 ${inputCls}`}
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
-                        >
+                        <Input type={showPassword ? 'text' : 'password'} value={regPassword} onChange={e => setRegPassword(e.target.value)} className={`pl-9 pr-10 ${inputCls}`} placeholder="••••••••" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors">
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id="remember"
-                          checked={remember}
-                          onCheckedChange={(v) => setRemember(v === true)}
-                          className="h-3.5 w-3.5"
-                        />
-                        <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer">
-                          Lembrar de mim
-                        </label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Confirmar senha</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                        <Input type={showPassword ? 'text' : 'password'} value={regConfirm} onChange={e => setRegConfirm(e.target.value)} className={`pl-9 ${inputCls}`} placeholder="••••••••" />
                       </div>
-                      <button type="button" className="text-xs text-primary hover:underline">
-                        Esqueceu a senha?
-                      </button>
                     </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full h-10 accent-glow gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                      disabled={loading}
-                    >
-                      {loading ? 'Entrando...' : 'Entrar'}
+                    <Button type="submit" className="w-full h-10 accent-glow gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" disabled={loading}>
+                      {loading ? 'Criando...' : 'Criar Conta'}
                       {!loading && <ChevronRight className="w-4 h-4" />}
                     </Button>
                   </form>
-
-                  {/* Mobile toggle */}
-                  <p className="text-xs text-muted-foreground text-center mt-6 md:hidden">
-                    Não tem conta?{' '}
-                    <button onClick={toggle} className="text-primary hover:underline">Criar conta</button>
+                  <p className="text-xs text-muted-foreground text-center mt-5 md:hidden">
+                    Já tem conta? <button onClick={toggle} className="text-primary hover:underline">Entrar</button>
                   </p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* ─── Register form ─── */}
-          <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-10">
+          {/* ─── Right half: shows LOGIN when overlay is on left ─── */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-10 relative z-10">
             <AnimatePresence mode="wait">
-              {!isLogin && (
+              {isLogin && (
                 <motion.div
-                  key="register-form"
+                  key="login-form"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.35 }}
                 >
-                  {/* Mobile logo */}
                   <div className="flex items-center gap-2.5 mb-6 md:hidden">
                     <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                       <Wrench className="w-4 h-4 text-primary-foreground" strokeWidth={1.5} />
                     </div>
                     <span className="font-semibold tracking-tight">TechAssist</span>
                   </div>
-
-                  <h3 className="text-xl font-bold tracking-tight mb-1">Criar Conta</h3>
-                  <p className="text-sm text-muted-foreground mb-6">Registre-se para acessar o sistema.</p>
-
-                  <form onSubmit={handleRegister} className="space-y-3.5">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Nome completo</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                        <Input
-                          value={regName}
-                          onChange={e => setRegName(e.target.value)}
-                          className={`pl-9 ${inputCls}`}
-                          placeholder="Seu nome"
-                        />
-                      </div>
-                    </div>
-
+                  <h3 className="text-xl font-bold tracking-tight mb-1">Login</h3>
+                  <p className="text-sm text-muted-foreground mb-6">Acesse o sistema de gestão.</p>
+                  <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Email</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                        <Input
-                          type="email"
-                          value={regEmail}
-                          onChange={e => setRegEmail(e.target.value)}
-                          className={`pl-9 ${inputCls}`}
-                          placeholder="seu@email.com"
-                        />
+                        <Input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} className={`pl-9 ${inputCls}`} placeholder="seu@email.com" />
                       </div>
                     </div>
-
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Senha</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          value={regPassword}
-                          onChange={e => setRegPassword(e.target.value)}
-                          className={`pl-9 pr-10 ${inputCls}`}
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
-                        >
+                        <Input type={showPassword ? 'text' : 'password'} value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className={`pl-9 pr-10 ${inputCls}`} placeholder="••••••••" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors">
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Confirmar senha</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          value={regConfirm}
-                          onChange={e => setRegConfirm(e.target.value)}
-                          className={`pl-9 ${inputCls}`}
-                          placeholder="••••••••"
-                        />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox id="remember" checked={remember} onCheckedChange={(v) => setRemember(v === true)} className="h-3.5 w-3.5" />
+                        <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer">Lembrar de mim</label>
                       </div>
+                      <button type="button" className="text-xs text-primary hover:underline">Esqueceu a senha?</button>
                     </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full h-10 accent-glow gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                      disabled={loading}
-                    >
-                      {loading ? 'Criando...' : 'Criar Conta'}
+                    <Button type="submit" className="w-full h-10 accent-glow gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" disabled={loading}>
+                      {loading ? 'Entrando...' : 'Entrar'}
                       {!loading && <ChevronRight className="w-4 h-4" />}
                     </Button>
                   </form>
-
-                  {/* Mobile toggle */}
-                  <p className="text-xs text-muted-foreground text-center mt-5 md:hidden">
-                    Já tem conta?{' '}
-                    <button onClick={toggle} className="text-primary hover:underline">Entrar</button>
+                  <p className="text-xs text-muted-foreground text-center mt-6 md:hidden">
+                    Não tem conta? <button onClick={toggle} className="text-primary hover:underline">Criar conta</button>
                   </p>
                 </motion.div>
               )}
