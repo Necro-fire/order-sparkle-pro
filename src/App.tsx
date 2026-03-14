@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AccentColorProvider } from "@/contexts/AccentColorContext";
 import { OrdersProvider } from "@/contexts/OrdersContext";
+import { CompanySettingsProvider } from "@/contexts/CompanySettingsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
@@ -24,27 +25,29 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <AccentColorProvider>
-        <OrdersProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/registro" element={<RegisterPage />} />
-                <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/ordens" element={<OrdersPage />} />
-                  <Route path="/ordens/:id" element={<OrderDetailPage />} />
-                  <Route path="/financeiro" element={<FinancialPage />} />
-                  <Route path="/relatorios" element={<ReportsPage />} />
-                  <Route path="/configuracoes" element={<SettingsPage />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </OrdersProvider>
+        <CompanySettingsProvider>
+          <OrdersProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/registro" element={<RegisterPage />} />
+                  <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/ordens" element={<OrdersPage />} />
+                    <Route path="/ordens/:id" element={<OrderDetailPage />} />
+                    <Route path="/financeiro" element={<FinancialPage />} />
+                    <Route path="/relatorios" element={<ReportsPage />} />
+                    <Route path="/configuracoes" element={<SettingsPage />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </OrdersProvider>
+        </CompanySettingsProvider>
       </AccentColorProvider>
     </AuthProvider>
   </QueryClientProvider>

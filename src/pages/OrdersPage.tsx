@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useOrders } from '@/contexts/OrdersContext';
 import { StatusBadge } from '@/components/StatusBadge';
 import { type OrderStatus, statusLabels } from '@/lib/mock-data';
+import { DateRangeFilter, getDefaultDateRange, type DateRange } from '@/components/DateRangeFilter';
 import { Plus, Search, Filter, Trash2, Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +11,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { parseISO, isWithinInterval } from 'date-fns';
 
 export default function OrdersPage() {
   const { orders, addOrder, updateOrder, deleteOrder } = useOrders();
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') || '');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -25,12 +29,30 @@ export default function OrdersPage() {
     problema: '', observacoes: '', valor: 0, tecnico: '',
   });
 
-  const filtered = orders.filter(o => {
-    const matchSearch = !search || [o.codigo, o.cliente, o.telefone, o.aparelho, o.marca]
+  // Listen for global search events from AppLayout
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setSearch(detail || '');
+    };
+    window.addEventListener('global-search', handler);
+    return () => window.removeEventListener('global-search', handler);
+  }, []);
+
+  // Also sync from URL params
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) setSearch(q);
+  }, [searchParams]);
+
+  const filtered = useMemo(() => orders.filter(o => {
+    const matchSearch = !search || [o.codigo, o.cliente, o.telefone, o.aparelho, o.marca, o.modelo]
       .some(f => f.toLowerCase().includes(search.toLowerCase()));
     const matchStatus = statusFilter === 'all' || o.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+    const d = parseISO(o.data_entrada);
+    const matchDate = isWithinInterval(d, { start: dateRange.from, end: dateRange.to });
+    return matchSearch && matchStatus && matchDate;
+  }), [orders, search, statusFilter, dateRange]);
 
   const openNew = () => {
     setEditingId(null);
@@ -81,26 +103,30 @@ export default function OrdersPage() {
     toast.success('Ordem excluída.');
   };
 
+  const inputShadow = { boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Ordens de Serviço</h1>
-          <p className="text-sm text-muted-foreground mt-1">{orders.length} ordens registradas</p>
+          <h1 className="text-lg font-semibold tracking-tight uppercase">Ordens de Serviço</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{filtered.length} ordens encontradas</p>
         </div>
-        <Button onClick={openNew} size="sm" className="accent-glow">
-          <Plus className="w-4 h-4 mr-1.5" strokeWidth={1.5} />
-          Nova OS
-        </Button>
+        <div className="flex items-center gap-2">
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <Button onClick={openNew} size="sm" className="accent-glow">
+            <Plus className="w-4 h-4 mr-1.5" strokeWidth={1.5} />Nova OS
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-          <Input placeholder="Buscar por código, cliente, aparelho..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-surface-1 border-0 text-sm" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+          <Input placeholder="Buscar por código, cliente, telefone, marca, modelo..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-surface-1 border-0 text-sm" style={inputShadow} />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px] bg-surface-1 border-0 text-sm" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
+          <SelectTrigger className="w-full sm:w-[180px] bg-surface-1 border-0 text-sm" style={inputShadow}>
             <Filter className="w-4 h-4 mr-2 text-muted-foreground" strokeWidth={1.5} />
             <SelectValue placeholder="Filtrar status" />
           </SelectTrigger>
@@ -147,7 +173,7 @@ export default function OrdersPage() {
                       </Select>
                     </td>
                     <td className="px-5 py-3 tabular-nums text-muted-foreground hidden lg:table-cell">{new Date(order.data_entrada).toLocaleDateString('pt-BR')}</td>
-                    <td className="px-5 py-3 text-right tabular-nums">R$ {Number(order.valor).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-3 text-right tabular-nums">R$ {Number(order.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => navigate(`/ordens/${order.id}`)} className="p-1.5 rounded-sm hover:bg-surface-2 text-muted-foreground hover:text-foreground"><Eye className="w-3.5 h-3.5" strokeWidth={1.5} /></button>
@@ -165,46 +191,46 @@ export default function OrdersPage() {
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="bg-surface-1 border-0 max-w-lg" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
+        <DialogContent className="bg-surface-1 border-0 max-w-lg" style={inputShadow}>
           <DialogHeader>
             <DialogTitle>{editingId ? 'Editar OS' : 'Nova Ordem de Serviço'}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="col-span-2">
               <Label className="text-xs text-muted-foreground">Nome do Cliente *</Label>
-              <Input value={formData.cliente} onChange={e => setFormData(p => ({ ...p, cliente: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} autoFocus />
+              <Input value={formData.cliente} onChange={e => setFormData(p => ({ ...p, cliente: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} autoFocus />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Telefone</Label>
-              <Input value={formData.telefone} onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Input value={formData.telefone} onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Aparelho *</Label>
-              <Input value={formData.aparelho} onChange={e => setFormData(p => ({ ...p, aparelho: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Input value={formData.aparelho} onChange={e => setFormData(p => ({ ...p, aparelho: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Marca</Label>
-              <Input value={formData.marca} onChange={e => setFormData(p => ({ ...p, marca: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Input value={formData.marca} onChange={e => setFormData(p => ({ ...p, marca: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Modelo</Label>
-              <Input value={formData.modelo} onChange={e => setFormData(p => ({ ...p, modelo: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Input value={formData.modelo} onChange={e => setFormData(p => ({ ...p, modelo: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} />
             </div>
             <div className="col-span-2">
               <Label className="text-xs text-muted-foreground">Problema Relatado</Label>
-              <Textarea value={formData.problema} onChange={e => setFormData(p => ({ ...p, problema: e.target.value }))} className="mt-1 bg-surface-2 border-0 min-h-[60px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Textarea value={formData.problema} onChange={e => setFormData(p => ({ ...p, problema: e.target.value }))} className="mt-1 bg-surface-2 border-0 min-h-[60px]" style={inputShadow} />
             </div>
             <div className="col-span-2">
               <Label className="text-xs text-muted-foreground">Observações Técnicas</Label>
-              <Textarea value={formData.observacoes} onChange={e => setFormData(p => ({ ...p, observacoes: e.target.value }))} className="mt-1 bg-surface-2 border-0 min-h-[60px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Textarea value={formData.observacoes} onChange={e => setFormData(p => ({ ...p, observacoes: e.target.value }))} className="mt-1 bg-surface-2 border-0 min-h-[60px]" style={inputShadow} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Valor (R$)</Label>
-              <Input type="number" value={formData.valor} onChange={e => setFormData(p => ({ ...p, valor: Number(e.target.value) }))} className="mt-1 bg-surface-2 border-0" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Input type="number" value={formData.valor} onChange={e => setFormData(p => ({ ...p, valor: Number(e.target.value) }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Técnico</Label>
-              <Input value={formData.tecnico} onChange={e => setFormData(p => ({ ...p, tecnico: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
+              <Input value={formData.tecnico} onChange={e => setFormData(p => ({ ...p, tecnico: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} />
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-6">

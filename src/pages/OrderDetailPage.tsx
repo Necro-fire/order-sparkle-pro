@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOrders } from '@/contexts/OrdersContext';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { StatusBadge } from '@/components/StatusBadge';
 import { type OrderStatus, statusLabels } from '@/lib/mock-data';
 import { ArrowLeft, Printer, FileText, Clock, User, Phone, Monitor, Wrench } from 'lucide-react';
@@ -12,6 +13,7 @@ import { useState } from 'react';
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { orders, updateOrder } = useOrders();
+  const { settings } = useCompanySettings();
   const navigate = useNavigate();
   const [showPrint, setShowPrint] = useState(false);
   const order = orders.find(o => o.id === id);
@@ -19,6 +21,14 @@ export default function OrderDetailPage() {
   if (!order) {
     return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Ordem não encontrada.</div>;
   }
+
+  const companyInfo = {
+    name: settings.nome_empresa || 'TechAssist — Assistência Técnica',
+    address: settings.endereco_empresa,
+    phone: settings.telefone_empresa,
+    email: settings.email_empresa,
+    logo_url: settings.logo_url,
+  };
 
   const handleStatusChange = async (newStatus: OrderStatus) => {
     const updates: Record<string, string> = { status: newStatus };
@@ -36,7 +46,6 @@ export default function OrderDetailPage() {
     setShowPrint(true);
     setTimeout(() => {
       window.print();
-      // Keep showing for a moment after print dialog
       setTimeout(() => setShowPrint(false), 500);
     }, 300);
   };
@@ -53,7 +62,6 @@ export default function OrderDetailPage() {
 
   return (
     <>
-      {/* Normal view (hidden during print) */}
       <motion.div
         className={`space-y-6 max-w-3xl ${showPrint ? 'no-print' : ''}`}
         initial={{ opacity: 0, y: 12 }}
@@ -82,7 +90,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Info Grid */}
         <div className="card-accent-subtle rounded-lg p-5">
           <h3 className="text-sm font-medium mb-4">Informações</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -98,7 +105,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Problem & Observations */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="card-accent-subtle rounded-lg p-5">
             <h3 className="text-sm font-medium mb-2">Problema Relatado</h3>
@@ -110,7 +116,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Value & Actions */}
         <div className="card-accent rounded-lg p-5 flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground">Valor do Serviço</p>
@@ -127,7 +132,6 @@ export default function OrderDetailPage() {
         </div>
       </motion.div>
 
-      {/* Print Preview / Print View */}
       {showPrint && (
         <div className="mt-8 no-print">
           <div className="flex items-center justify-between mb-4">
@@ -140,14 +144,13 @@ export default function OrderDetailPage() {
             </div>
           </div>
           <div className="border border-border rounded-lg overflow-hidden" style={{ boxShadow: '0 4px 30px rgba(0,0,0,0.4)' }}>
-            <PrintOrderView order={order} />
+            <PrintOrderView order={order} companyInfo={companyInfo} />
           </div>
         </div>
       )}
 
-      {/* Hidden print-only content */}
       <div className="hidden print-only">
-        <PrintOrderView order={order} />
+        <PrintOrderView order={order} companyInfo={companyInfo} />
       </div>
     </>
   );

@@ -4,6 +4,7 @@ import {
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu,
   SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
@@ -26,6 +27,9 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { settings } = useCompanySettings();
+
+  const companyName = settings.nome_empresa || 'TechAssist';
 
   const handleLogout = async () => {
     await signOut();
@@ -35,10 +39,14 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ boxShadow: 'inset -1px 0 0 0 rgba(255,255,255,0.08)' }}>
       <div className="p-4 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
-          <Wrench className="w-4 h-4 text-primary-foreground" strokeWidth={1.5} />
-        </div>
-        {!collapsed && <span className="text-sm font-semibold text-foreground tracking-tight">TechAssist</span>}
+        {settings.logo_url ? (
+          <img src={settings.logo_url} alt="Logo" className="w-8 h-8 rounded-md object-contain flex-shrink-0" />
+        ) : (
+          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
+            <Wrench className="w-4 h-4 text-primary-foreground" strokeWidth={1.5} />
+          </div>
+        )}
+        {!collapsed && <span className="text-sm font-semibold text-foreground tracking-tight truncate">{companyName}</span>}
       </div>
       <SidebarContent>
         <SidebarGroup>
