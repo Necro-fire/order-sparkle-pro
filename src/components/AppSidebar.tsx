@@ -1,24 +1,12 @@
 import {
-  LayoutDashboard,
-  ClipboardList,
-  DollarSign,
-  BarChart3,
-  Settings,
-  Wrench,
-  LogOut,
+  LayoutDashboard, ClipboardList, DollarSign, BarChart3, Settings, Wrench, LogOut,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu,
+  SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from '@/components/ui/sidebar';
 
 const mainItems = [
@@ -36,6 +24,13 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ boxShadow: 'inset -1px 0 0 0 rgba(255,255,255,0.08)' }}>
@@ -43,13 +38,8 @@ export function AppSidebar() {
         <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
           <Wrench className="w-4 h-4 text-primary-foreground" strokeWidth={1.5} />
         </div>
-        {!collapsed && (
-          <span className="text-sm font-semibold text-foreground tracking-tight">
-            TechAssist
-          </span>
-        )}
+        {!collapsed && <span className="text-sm font-semibold text-foreground tracking-tight">TechAssist</span>}
       </div>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -57,12 +47,7 @@ export function AppSidebar() {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === '/'}
-                      className="transition-transform duration-150"
-                      activeClassName="text-primary"
-                    >
+                    <NavLink to={item.url} end={item.url === '/'} className="transition-transform duration-150" activeClassName="text-primary">
                       <item.icon className="w-4 h-4" strokeWidth={1.5} />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -73,17 +58,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter>
         <SidebarMenu>
           {bottomItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                <NavLink
-                  to={item.url}
-                  className="transition-transform duration-150"
-                  activeClassName="text-primary"
-                >
+                <NavLink to={item.url} className="transition-transform duration-150" activeClassName="text-primary">
                   <item.icon className="w-4 h-4" strokeWidth={1.5} />
                   {!collapsed && <span>{item.title}</span>}
                 </NavLink>
@@ -91,7 +71,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-muted-foreground hover:text-destructive">
+            <SidebarMenuButton onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
               <LogOut className="w-4 h-4" strokeWidth={1.5} />
               {!collapsed && <span>Sair</span>}
             </SidebarMenuButton>
