@@ -1,7 +1,7 @@
 import { ClipboardList, Clock, CheckCircle, DollarSign, AlertCircle } from 'lucide-react';
 import { useOrders } from '@/contexts/OrdersContext';
 import { StatusBadge } from '@/components/StatusBadge';
-import { monthlyRevenue } from '@/lib/mock-data';
+import { monthlyRevenue, type OrderStatus } from '@/lib/mock-data';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,7 @@ export default function Dashboard() {
   const pendentes = orders.filter(o => o.status === 'pendente').length;
   const manutencao = orders.filter(o => o.status === 'em_manutencao').length;
   const finalizados = orders.filter(o => o.status === 'finalizado').length;
-  const receita = orders.filter(o => o.status === 'finalizado').reduce((s, o) => s + o.valor, 0);
+  const receita = orders.filter(o => o.status === 'finalizado').reduce((s, o) => s + Number(o.valor), 0);
 
   const stats = [
     { label: 'Total de OS', value: total, icon: ClipboardList, color: 'text-foreground' },
@@ -47,17 +47,9 @@ export default function Dashboard() {
         <p className="text-sm text-muted-foreground mt-1">Controle total da sua assistência.</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {stats.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            className="surface-card rounded-lg p-4"
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            custom={i}
-          >
+          <motion.div key={stat.label} className="surface-card rounded-lg p-4" variants={cardVariants} initial="hidden" animate="visible" custom={i}>
             <div className="flex items-center gap-2 mb-3">
               <stat.icon className={`w-4 h-4 ${stat.color}`} strokeWidth={1.5} />
               <span className="text-xs text-muted-foreground">{stat.label}</span>
@@ -67,14 +59,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <motion.div
-          className="surface-card rounded-lg p-5 lg:col-span-2"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.35, ease: [0.2, 0, 0, 1] }}
-        >
+        <motion.div className="surface-card rounded-lg p-5 lg:col-span-2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <h3 className="text-sm font-medium mb-4">Receita Mensal</h3>
           <ResponsiveContainer width="100%" height={240}>
             <AreaChart data={monthlyRevenue}>
@@ -87,27 +73,13 @@ export default function Dashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(240,5%,65%)' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: 'hsl(240,5%,65%)' }} axisLine={false} tickLine={false} tickFormatter={(v) => `R$${v/1000}k`} />
-              <Tooltip
-                contentStyle={{
-                  background: 'hsl(240,10%,9%)',
-                  border: 'none',
-                  borderRadius: 8,
-                  boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
-                  fontSize: 12,
-                }}
-                formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']}
-              />
+              <Tooltip contentStyle={{ background: 'hsl(240,10%,9%)', border: 'none', borderRadius: 8, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)', fontSize: 12 }} formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']} />
               <Area type="monotone" dataKey="valor" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revenueGradient)" />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div
-          className="surface-card rounded-lg p-5"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.35, ease: [0.2, 0, 0, 1] }}
-        >
+        <motion.div className="surface-card rounded-lg p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <h3 className="text-sm font-medium mb-4">OS por Status</h3>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={statusData} layout="vertical">
@@ -120,13 +92,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Recent Orders */}
-      <motion.div
-        className="surface-card rounded-lg"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.35, ease: [0.2, 0, 0, 1] }}
-      >
+      <motion.div className="surface-card rounded-lg" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
         <div className="p-5 flex items-center justify-between">
           <h3 className="text-sm font-medium">Ordens Recentes</h3>
           <button onClick={() => navigate('/ordens')} className="text-xs text-primary hover:underline">Ver todas</button>
@@ -145,22 +111,21 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {recentOrders.map(order => (
-                <tr
-                  key={order.id}
-                  className="surface-interactive cursor-pointer"
-                  onClick={() => navigate(`/ordens/${order.id}`)}
-                >
+                <tr key={order.id} className="surface-interactive cursor-pointer" onClick={() => navigate(`/ordens/${order.id}`)}>
                   <td className="px-5 py-3 tabular-nums font-medium text-primary">{order.codigo}</td>
                   <td className="px-5 py-3">{order.cliente}</td>
                   <td className="px-5 py-3 text-muted-foreground">{order.marca} {order.modelo}</td>
-                  <td className="px-5 py-3"><StatusBadge status={order.status} /></td>
-                  <td className="px-5 py-3 tabular-nums text-muted-foreground">{new Date(order.dataEntrada).toLocaleDateString('pt-BR')}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">R$ {order.valor.toLocaleString('pt-BR')}</td>
+                  <td className="px-5 py-3"><StatusBadge status={order.status as OrderStatus} /></td>
+                  <td className="px-5 py-3 tabular-nums text-muted-foreground">{new Date(order.data_entrada).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-5 py-3 text-right tabular-nums">R$ {Number(order.valor).toLocaleString('pt-BR')}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        {recentOrders.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground text-sm">Nenhuma ordem cadastrada ainda. Clique em "Nova OS" para começar.</div>
+        )}
       </motion.div>
     </div>
   );

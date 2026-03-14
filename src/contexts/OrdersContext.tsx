@@ -1,54 +1,70 @@
-import React, { createContext, useContext, useState } from 'react';
-import { ServiceOrder, mockOrders } from '@/lib/mock-data';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Tables } from '@/integrations/supabase/types';
+
+type ServiceOrder = Tables<'service_orders'>;
 
 interface OrdersContextType {
   orders: ServiceOrder[];
-  addOrder: (order: Omit<ServiceOrder, 'id' | 'codigo'>) => void;
-  updateOrder: (id: string, updates: Partial<ServiceOrder>) => void;
-  deleteOrder: (id: string) => void;
-  getNextCode: () => string;
+  loading: boolean;
+  addOrder: (order: { cliente: string; telefone: string; aparelho: string; marca: string; modelo: string; problema: string; observacoes: string; valor: number; tecnico: string }) => Promise<void>;
+  updateOrder: (id: string, updates: Partial<ServiceOrder>) => Promise<void>;
+  deleteOrder: (id: string) => Promise<void>;
+  refetch: () => Promise<void>;
 }
 
 const OrdersContext = createContext<OrdersContextType>({
-  orders: [],
-  addOrder: () => {},
-  updateOrder: () => {},
-  deleteOrder: () => {},
-  getNextCode: () => '',
+  orders: [], loading: true,
+  addOrder: async () => {},
+  updateOrder: async () => {},
+  deleteOrder: async () => {},
+  refetch: async () => {},
 });
 
 export const useOrders = () => useContext(OrdersContext);
 
 export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [orders, setOrders] = useState<ServiceOrder[]>(mockOrders);
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getNextCode = () => {
-    const maxNum = orders.reduce((max, o) => {
-      const num = parseInt(o.codigo.replace('OS-', ''));
-      return num > max ? num : max;
-    }, 0);
-    return `OS-${String(maxNum + 1).padStart(4, '0')}`;
-  };
+  const fetchOrders = useCallback(async () => {
+    if (!user) { setOrders([]); setLoading(false); return; }
+    const { data } = await supabase
+      .from('service_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setOrders(data || []);
+    setLoading(false);
+  }, [user]);
 
-  const addOrder = (order: Omit<ServiceOrder, 'id' | 'codigo'>) => {
-    const newOrder: ServiceOrder = {
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  const addOrder = async (order: { cliente: string; telefone: string; aparelho: string; marca: string; modelo: string; problema: string; observacoes: string; valor: number; tecnico: string }) => {
+    if (!user) return;
+    const { data: codigo } = await supabase.rpc('get_next_os_code', { p_user_id: user.id });
+    await supabase.from('service_orders').insert({
       ...order,
-      id: String(Date.now()),
-      codigo: getNextCode(),
-    };
-    setOrders(prev => [newOrder, ...prev]);
+      user_id: user.id,
+      codigo: codigo || `OS-${Date.now()}`,
+      status: 'pendente',
+    });
+    await fetchOrders();
   };
 
-  const updateOrder = (id: string, updates: Partial<ServiceOrder>) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
+  const updateOrder = async (id: string, updates: Partial<ServiceOrder>) => {
+    await supabase.from('service_orders').update(updates).eq('id', id);
+    await fetchOrders();
   };
 
-  const deleteOrder = (id: string) => {
-    setOrders(prev => prev.filter(o => o.id !== id));
+  const deleteOrder = async (id: string) => {
+    await supabase.from('service_orders').delete().eq('id', id);
+    await fetchOrders();
   };
 
   return (
-    <OrdersContext.Provider value={{ orders, addOrder, updateOrder, deleteOrder, getNextCode }}>
+    <OrdersContext.Provider value={{ orders, loading, addOrder, updateOrder, deleteOrder, refetch: fetchOrders }}>
       {children}
     </OrdersContext.Provider>
   );

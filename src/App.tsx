@@ -3,8 +3,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { AccentColorProvider } from "@/contexts/AccentColorContext";
 import { OrdersProvider } from "@/contexts/OrdersContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import OrdersPage from "@/pages/OrdersPage";
@@ -20,29 +22,31 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AccentColorProvider>
-      <OrdersProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/registro" element={<RegisterPage />} />
-              <Route element={<AppLayout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/ordens" element={<OrdersPage />} />
-                <Route path="/ordens/:id" element={<OrderDetailPage />} />
-                <Route path="/financeiro" element={<FinancialPage />} />
-                <Route path="/relatorios" element={<ReportsPage />} />
-                <Route path="/configuracoes" element={<SettingsPage />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </OrdersProvider>
-    </AccentColorProvider>
+    <AuthProvider>
+      <AccentColorProvider>
+        <OrdersProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/registro" element={<RegisterPage />} />
+                <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/ordens" element={<OrdersPage />} />
+                  <Route path="/ordens/:id" element={<OrderDetailPage />} />
+                  <Route path="/financeiro" element={<FinancialPage />} />
+                  <Route path="/relatorios" element={<ReportsPage />} />
+                  <Route path="/configuracoes" element={<SettingsPage />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </OrdersProvider>
+      </AccentColorProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

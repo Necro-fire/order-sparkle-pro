@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useOrders } from '@/contexts/OrdersContext';
 import { StatusBadge } from '@/components/StatusBadge';
-import { OrderStatus, statusLabels } from '@/lib/mock-data';
-import { Plus, Search, Filter, Trash2, Edit, Eye, FileText } from 'lucide-react';
+import { type OrderStatus, statusLabels } from '@/lib/mock-data';
+import { Plus, Search, Filter, Trash2, Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function OrdersPage() {
-  const { orders, addOrder, updateOrder, deleteOrder, getNextCode } = useOrders();
+  const { orders, addOrder, updateOrder, deleteOrder } = useOrders();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -44,46 +44,40 @@ export default function OrdersPage() {
     setEditingId(id);
     setFormData({
       cliente: o.cliente, telefone: o.telefone, aparelho: o.aparelho, marca: o.marca,
-      modelo: o.modelo, problema: o.problema, observacoes: o.observacoes, valor: o.valor, tecnico: o.tecnico,
+      modelo: o.modelo, problema: o.problema, observacoes: o.observacoes, valor: Number(o.valor), tecnico: o.tecnico,
     });
     setShowForm(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.cliente || !formData.aparelho) {
       toast.error('Preencha os campos obrigatórios.');
       return;
     }
     if (editingId) {
-      updateOrder(editingId, formData);
+      await updateOrder(editingId, formData);
       toast.success('Ordem atualizada.');
     } else {
-      addOrder({
-        ...formData,
-        status: 'pendente',
-        dataEntrada: new Date().toISOString().split('T')[0],
-        horaInicio: null,
-        horaFinal: null,
-      });
+      await addOrder(formData);
       toast.success('Nova ordem criada.');
     }
     setShowForm(false);
   };
 
-  const handleStatusChange = (id: string, newStatus: OrderStatus) => {
-    const updates: Partial<{ status: OrderStatus; horaInicio: string; horaFinal: string }> = { status: newStatus };
+  const handleStatusChange = async (id: string, newStatus: OrderStatus) => {
+    const updates: Record<string, string> = { status: newStatus };
     if (newStatus === 'em_manutencao') {
-      updates.horaInicio = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      updates.hora_inicio = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
     if (newStatus === 'finalizado') {
-      updates.horaFinal = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      updates.hora_final = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
-    updateOrder(id, updates);
+    await updateOrder(id, updates);
     toast.success(`Status alterado para ${statusLabels[newStatus]}.`);
   };
 
-  const handleDelete = (id: string) => {
-    deleteOrder(id);
+  const handleDelete = async (id: string) => {
+    await deleteOrder(id);
     toast.success('Ordem excluída.');
   };
 
@@ -100,17 +94,10 @@ export default function OrdersPage() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-          <Input
-            placeholder="Buscar por código, cliente, aparelho..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9 bg-surface-1 border-0 text-sm"
-            style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}
-          />
+          <Input placeholder="Buscar por código, cliente, aparelho..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-surface-1 border-0 text-sm" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-[180px] bg-surface-1 border-0 text-sm" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
@@ -126,7 +113,6 @@ export default function OrdersPage() {
         </Select>
       </div>
 
-      {/* Table */}
       <div className="surface-card rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -144,24 +130,14 @@ export default function OrdersPage() {
             <tbody>
               <AnimatePresence>
                 {filtered.map(order => (
-                  <motion.tr
-                    key={order.id}
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="surface-interactive group"
-                  >
+                  <motion.tr key={order.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="surface-interactive group">
                     <td className="px-5 py-3 tabular-nums font-medium text-primary">{order.codigo}</td>
                     <td className="px-5 py-3">{order.cliente}</td>
                     <td className="px-5 py-3 text-muted-foreground hidden md:table-cell">{order.marca} {order.modelo}</td>
                     <td className="px-5 py-3">
-                      <Select
-                        value={order.status}
-                        onValueChange={(v) => handleStatusChange(order.id, v as OrderStatus)}
-                      >
+                      <Select value={order.status} onValueChange={(v) => handleStatusChange(order.id, v as OrderStatus)}>
                         <SelectTrigger className="border-0 bg-transparent p-0 h-auto shadow-none w-auto">
-                          <StatusBadge status={order.status} />
+                          <StatusBadge status={order.status as OrderStatus} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pendente">Pendente</SelectItem>
@@ -170,21 +146,13 @@ export default function OrdersPage() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="px-5 py-3 tabular-nums text-muted-foreground hidden lg:table-cell">
-                      {new Date(order.dataEntrada).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className="px-5 py-3 text-right tabular-nums">R$ {order.valor.toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-3 tabular-nums text-muted-foreground hidden lg:table-cell">{new Date(order.data_entrada).toLocaleDateString('pt-BR')}</td>
+                    <td className="px-5 py-3 text-right tabular-nums">R$ {Number(order.valor).toLocaleString('pt-BR')}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => navigate(`/ordens/${order.id}`)} className="p-1.5 rounded-sm hover:bg-surface-2 text-muted-foreground hover:text-foreground">
-                          <Eye className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        </button>
-                        <button onClick={() => openEdit(order.id)} className="p-1.5 rounded-sm hover:bg-surface-2 text-muted-foreground hover:text-foreground">
-                          <Edit className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        </button>
-                        <button onClick={() => handleDelete(order.id)} className="p-1.5 rounded-sm hover:bg-destructive/20 text-muted-foreground hover:text-destructive">
-                          <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        </button>
+                        <button onClick={() => navigate(`/ordens/${order.id}`)} className="p-1.5 rounded-sm hover:bg-surface-2 text-muted-foreground hover:text-foreground"><Eye className="w-3.5 h-3.5" strokeWidth={1.5} /></button>
+                        <button onClick={() => openEdit(order.id)} className="p-1.5 rounded-sm hover:bg-surface-2 text-muted-foreground hover:text-foreground"><Edit className="w-3.5 h-3.5" strokeWidth={1.5} /></button>
+                        <button onClick={() => handleDelete(order.id)} className="p-1.5 rounded-sm hover:bg-destructive/20 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} /></button>
                       </div>
                     </td>
                   </motion.tr>
@@ -193,19 +161,13 @@ export default function OrdersPage() {
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground text-sm">
-            Nenhuma ordem encontrada.
-          </div>
-        )}
+        {filtered.length === 0 && <div className="text-center py-12 text-muted-foreground text-sm">Nenhuma ordem encontrada.</div>}
       </div>
 
-      {/* Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="bg-surface-1 border-0 max-w-lg" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
           <DialogHeader>
             <DialogTitle>{editingId ? 'Editar OS' : 'Nova Ordem de Serviço'}</DialogTitle>
-            {!editingId && <p className="text-xs text-muted-foreground tabular-nums">Código: {getNextCode()}</p>}
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="col-span-2">
