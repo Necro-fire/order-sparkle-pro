@@ -142,4 +142,117 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(240 5% 30%);
   }
+
+  /* Card with accent border (reference style) */
+  .card-accent {
+    background: hsl(var(--surface-1));
+    border: 1px solid hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 15px -3px hsl(var(--primary) / 0.15), inset 0 0 0 1px hsl(var(--primary) / 0.1);
+  }
+
+  .card-accent-subtle {
+    background: hsl(var(--surface-1));
+    border: 1px solid hsl(var(--primary) / 0.15);
+  }
+
+  .section-title {
+    @apply text-xs font-semibold tracking-wider uppercase text-muted-foreground;
+    letter-spacing: 0.08em;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 12mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body {
+    background: white !important;
+    color: #111 !important;
+    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Hide app shell when printing */
+  .no-print,
+  nav,
+  header,
+  aside,
+  .sidebar,
+  [data-sidebar],
+  button:not(.print-keep),
+  .sonner-toast-wrapper {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: #111 !important;
+  }
+
+  .print-page * {
+    color: #111 !important;
+    border-color: #ddd !important;
+  }
+
+  .print-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 10pt;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+    break-before: always;
+  }
+
+  .print-header {
+    border-bottom: 2pt solid #111;
+    padding-bottom: 8pt;
+    margin-bottom: 12pt;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .print-table th,
+  .print-table td {
+    border: 1px solid #ccc;
+    padding: 4pt 6pt;
+    text-align: left;
+    font-size: 9pt;
+  }
+
+  .print-table th {
+    background: #f0f0f0 !important;
+    font-weight: 600;
+  }
+
+  .signature-line {
+    border-top: 1px solid #333;
+    width: 200px;
+    margin-top: 40pt;
+    padding-top: 4pt;
+    text-align: center;
+    font-size: 8pt;
+  }
 }
