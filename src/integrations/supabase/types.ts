@@ -14,13 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          cor_tema: string
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cor_tema?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cor_tema?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      service_orders: {
+        Row: {
+          aparelho: string
+          cliente: string
+          codigo: string
+          created_at: string
+          data_entrada: string
+          hora_final: string | null
+          hora_inicio: string | null
+          id: string
+          marca: string
+          modelo: string
+          observacoes: string
+          problema: string
+          status: string
+          tecnico: string
+          telefone: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          aparelho: string
+          cliente: string
+          codigo: string
+          created_at?: string
+          data_entrada?: string
+          hora_final?: string | null
+          hora_inicio?: string | null
+          id?: string
+          marca?: string
+          modelo?: string
+          observacoes?: string
+          problema?: string
+          status?: string
+          tecnico?: string
+          telefone?: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+        }
+        Update: {
+          aparelho?: string
+          cliente?: string
+          codigo?: string
+          created_at?: string
+          data_entrada?: string
+          hora_final?: string | null
+          hora_inicio?: string | null
+          id?: string
+          marca?: string
+          modelo?: string
+          observacoes?: string
+          problema?: string
+          status?: string
+          tecnico?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_next_os_code: { Args: { p_user_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
