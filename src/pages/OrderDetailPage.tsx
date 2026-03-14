@@ -4,13 +4,16 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { type OrderStatus, statusLabels } from '@/lib/mock-data';
 import { ArrowLeft, Printer, FileText, Clock, User, Phone, Monitor, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PrintOrderView } from '@/components/PrintOrderView';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { orders, updateOrder } = useOrders();
   const navigate = useNavigate();
+  const [showPrint, setShowPrint] = useState(false);
   const order = orders.find(o => o.id === id);
 
   if (!order) {
@@ -29,6 +32,15 @@ export default function OrderDetailPage() {
     toast.success(`Status alterado para ${statusLabels[newStatus]}.`);
   };
 
+  const handlePrint = () => {
+    setShowPrint(true);
+    setTimeout(() => {
+      window.print();
+      // Keep showing for a moment after print dialog
+      setTimeout(() => setShowPrint(false), 500);
+    }, 300);
+  };
+
   const infoItems = [
     { icon: User, label: 'Cliente', value: order.cliente },
     { icon: Phone, label: 'Telefone', value: order.telefone },
@@ -40,68 +52,103 @@ export default function OrderDetailPage() {
   ];
 
   return (
-    <motion.div className="space-y-6 max-w-3xl" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] as [number, number, number, number] }}>
-      <div className="flex items-center gap-4">
-        <button onClick={() => navigate('/ordens')} className="p-2 rounded-md hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-        </button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold tabular-nums">{order.codigo}</h1>
-            <StatusBadge status={order.status as OrderStatus} />
-          </div>
-          <p className="text-sm text-muted-foreground mt-0.5">{order.cliente} · {order.marca} {order.modelo}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.print()} className="border-0 bg-surface-1" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
-            <Printer className="w-4 h-4 mr-1.5" strokeWidth={1.5} />Imprimir
-          </Button>
-          <Button variant="outline" size="sm" className="border-0 bg-surface-1" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
-            <FileText className="w-4 h-4 mr-1.5" strokeWidth={1.5} />Relatório
-          </Button>
-        </div>
-      </div>
-
-      <div className="surface-card rounded-lg p-5">
-        <h3 className="text-sm font-medium mb-4">Informações</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {infoItems.map(item => (
-            <div key={item.label} className="flex items-start gap-3">
-              <item.icon className="w-4 h-4 text-muted-foreground mt-0.5" strokeWidth={1.5} />
-              <div>
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-                <p className="text-sm tabular-nums">{item.value}</p>
-              </div>
+    <>
+      {/* Normal view (hidden during print) */}
+      <motion.div
+        className={`space-y-6 max-w-3xl ${showPrint ? 'no-print' : ''}`}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] as [number, number, number, number] }}
+      >
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/ordens')} className="p-2 rounded-md hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-colors no-print">
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+          </button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold tabular-nums">{order.codigo}</h1>
+              <StatusBadge status={order.status as OrderStatus} />
             </div>
-          ))}
+            <p className="text-sm text-muted-foreground mt-0.5">{order.cliente} · {order.marca} {order.modelo}</p>
+          </div>
+          <div className="flex items-center gap-2 no-print">
+            <Button variant="outline" size="sm" onClick={handlePrint} className="border-0 bg-surface-1" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
+              <Printer className="w-4 h-4 mr-1.5" strokeWidth={1.5} />Imprimir OS
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowPrint(!showPrint)} className="border-0 bg-surface-1" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
+              <FileText className="w-4 h-4 mr-1.5" strokeWidth={1.5} />
+              {showPrint ? 'Fechar Preview' : 'Visualizar OS'}
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="surface-card rounded-lg p-5">
-          <h3 className="text-sm font-medium mb-2">Problema Relatado</h3>
-          <p className="text-sm text-muted-foreground">{order.problema || '—'}</p>
+        {/* Info Grid */}
+        <div className="card-accent-subtle rounded-lg p-5">
+          <h3 className="text-sm font-medium mb-4">Informações</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {infoItems.map(item => (
+              <div key={item.label} className="flex items-start gap-3">
+                <item.icon className="w-4 h-4 text-muted-foreground mt-0.5" strokeWidth={1.5} />
+                <div>
+                  <p className="text-xs text-muted-foreground">{item.label}</p>
+                  <p className="text-sm tabular-nums">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="surface-card rounded-lg p-5">
-          <h3 className="text-sm font-medium mb-2">Observações Técnicas</h3>
-          <p className="text-sm text-muted-foreground">{order.observacoes || '—'}</p>
-        </div>
-      </div>
 
-      <div className="surface-card rounded-lg p-5 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted-foreground">Valor do Serviço</p>
-          <p className="text-2xl font-semibold tabular-nums">R$ {Number(order.valor).toLocaleString('pt-BR')}</p>
+        {/* Problem & Observations */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="card-accent-subtle rounded-lg p-5">
+            <h3 className="text-sm font-medium mb-2">Problema Relatado</h3>
+            <p className="text-sm text-muted-foreground">{order.problema || '—'}</p>
+          </div>
+          <div className="card-accent-subtle rounded-lg p-5">
+            <h3 className="text-sm font-medium mb-2">Observações Técnicas</h3>
+            <p className="text-sm text-muted-foreground">{order.observacoes || '—'}</p>
+          </div>
         </div>
-        <div className="flex gap-2">
-          {order.status === 'pendente' && (
-            <Button size="sm" onClick={() => handleStatusChange('em_manutencao')} className="accent-glow">Iniciar Manutenção</Button>
-          )}
-          {order.status === 'em_manutencao' && (
-            <Button size="sm" onClick={() => handleStatusChange('finalizado')} className="bg-status-completed hover:bg-status-completed/90 text-primary-foreground">Finalizar</Button>
-          )}
+
+        {/* Value & Actions */}
+        <div className="card-accent rounded-lg p-5 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">Valor do Serviço</p>
+            <p className="text-2xl font-semibold tabular-nums">R$ {Number(order.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div className="flex gap-2 no-print">
+            {order.status === 'pendente' && (
+              <Button size="sm" onClick={() => handleStatusChange('em_manutencao')} className="accent-glow">Iniciar Manutenção</Button>
+            )}
+            {order.status === 'em_manutencao' && (
+              <Button size="sm" onClick={() => handleStatusChange('finalizado')} className="bg-status-completed hover:bg-status-completed/90 text-primary-foreground">Finalizar</Button>
+            )}
+          </div>
         </div>
+      </motion.div>
+
+      {/* Print Preview / Print View */}
+      {showPrint && (
+        <div className="mt-8 no-print">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium">Pré-visualização da Impressão</h3>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handlePrint} className="accent-glow">
+                <Printer className="w-4 h-4 mr-1.5" />Imprimir
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowPrint(false)}>Fechar</Button>
+            </div>
+          </div>
+          <div className="border border-border rounded-lg overflow-hidden" style={{ boxShadow: '0 4px 30px rgba(0,0,0,0.4)' }}>
+            <PrintOrderView order={order} />
+          </div>
+        </div>
+      )}
+
+      {/* Hidden print-only content */}
+      <div className="hidden print-only">
+        <PrintOrderView order={order} />
       </div>
-    </motion.div>
+    </>
   );
 }
