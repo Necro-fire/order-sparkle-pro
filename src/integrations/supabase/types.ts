@@ -21,6 +21,7 @@ export type Database = {
           descricao: string | null
           forma_pagamento: string | null
           id: string
+          order_id: string | null
           session_id: string
           tipo: string
           updated_at: string
@@ -33,6 +34,7 @@ export type Database = {
           descricao?: string | null
           forma_pagamento?: string | null
           id?: string
+          order_id?: string | null
           session_id: string
           tipo: string
           updated_at?: string
@@ -45,6 +47,7 @@ export type Database = {
           descricao?: string | null
           forma_pagamento?: string | null
           id?: string
+          order_id?: string | null
           session_id?: string
           tipo?: string
           updated_at?: string
@@ -52,6 +55,13 @@ export type Database = {
           valor?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "cash_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cash_movements_session_id_fkey"
             columns: ["session_id"]
@@ -109,6 +119,39 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          icone: string
+          id: string
+          nome: string
+          ordem: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          icone?: string
+          id?: string
+          nome: string
+          ordem?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          icone?: string
+          id?: string
+          nome?: string
+          ordem?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           created_at: string
@@ -151,6 +194,187 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          preco_unitario: number
+          product_id: string | null
+          produto_nome: string
+          quantidade: number
+          subtotal: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          preco_unitario?: number
+          product_id?: string | null
+          produto_nome: string
+          quantidade?: number
+          subtotal?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          preco_unitario?: number
+          product_id?: string | null
+          produto_nome?: string
+          quantidade?: number
+          subtotal?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          bairro: string | null
+          cliente_endereco: string | null
+          cliente_nome: string | null
+          cliente_telefone: string | null
+          created_at: string
+          desconto: number
+          finalizado_em: string | null
+          forma_pagamento: string | null
+          horario_retirada: string | null
+          id: string
+          mesa_id: string | null
+          numero: number
+          observacoes: string | null
+          origem: string
+          status: string
+          subtotal: number
+          taxa_entrega: number
+          tipo: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          cliente_endereco?: string | null
+          cliente_nome?: string | null
+          cliente_telefone?: string | null
+          created_at?: string
+          desconto?: number
+          finalizado_em?: string | null
+          forma_pagamento?: string | null
+          horario_retirada?: string | null
+          id?: string
+          mesa_id?: string | null
+          numero?: number
+          observacoes?: string | null
+          origem?: string
+          status?: string
+          subtotal?: number
+          taxa_entrega?: number
+          tipo?: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          cliente_endereco?: string | null
+          cliente_nome?: string | null
+          cliente_telefone?: string | null
+          created_at?: string
+          desconto?: number
+          finalizado_em?: string | null
+          forma_pagamento?: string | null
+          horario_retirada?: string | null
+          id?: string
+          mesa_id?: string | null
+          numero?: number
+          observacoes?: string | null
+          origem?: string
+          status?: string
+          subtotal?: number
+          taxa_entrega?: number
+          tipo?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_mesa_id_fkey"
+            columns: ["mesa_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          ativo: boolean
+          category_id: string | null
+          created_at: string
+          descricao: string | null
+          disponivel: boolean
+          id: string
+          imagem_url: string | null
+          nome: string
+          ordem: number
+          preco: number
+          preco_promo: number | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          category_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          disponivel?: boolean
+          id?: string
+          imagem_url?: string | null
+          nome: string
+          ordem?: number
+          preco?: number
+          preco_promo?: number | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          category_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          disponivel?: boolean
+          id?: string
+          imagem_url?: string | null
+          nome?: string
+          ordem?: number
+          preco?: number
+          preco_promo?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string
@@ -181,6 +405,33 @@ export type Database = {
           nome?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      restaurant_tables: {
+        Row: {
+          capacidade: number
+          created_at: string
+          id: string
+          numero: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          capacidade?: number
+          created_at?: string
+          id?: string
+          numero: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          capacidade?: number
+          created_at?: string
+          id?: string
+          numero?: number
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -244,6 +495,48 @@ export type Database = {
           updated_at?: string
           user_id?: string
           valor?: number
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          aceita_pedidos_online: boolean
+          created_at: string
+          descricao: string | null
+          endereco: string | null
+          horario_funcionamento: string | null
+          id: number
+          nome_estabelecimento: string
+          taxa_entrega: number
+          telefone: string | null
+          updated_at: string
+          whatsapp_suporte: string
+        }
+        Insert: {
+          aceita_pedidos_online?: boolean
+          created_at?: string
+          descricao?: string | null
+          endereco?: string | null
+          horario_funcionamento?: string | null
+          id: number
+          nome_estabelecimento?: string
+          taxa_entrega?: number
+          telefone?: string | null
+          updated_at?: string
+          whatsapp_suporte?: string
+        }
+        Update: {
+          aceita_pedidos_online?: boolean
+          created_at?: string
+          descricao?: string | null
+          endereco?: string | null
+          horario_funcionamento?: string | null
+          id?: number
+          nome_estabelecimento?: string
+          taxa_entrega?: number
+          telefone?: string | null
+          updated_at?: string
+          whatsapp_suporte?: string
         }
         Relationships: []
       }
