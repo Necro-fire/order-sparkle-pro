@@ -10,661 +10,145 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
-      cash_movements: {
+      company_settings: {
         Row: {
           created_at: string
-          criado_por: string | null
-          descricao: string | null
-          forma_pagamento: Database["public"]["Enums"]["payment_method"] | null
+          custo_fixo_mensal: number
+          email_empresa: string
+          endereco_empresa: string
           id: string
-          order_id: string | null
-          session_id: string
-          tipo: Database["public"]["Enums"]["cash_movement_type"]
-          valor: number
+          logo_url: string
+          margem_custo_percentual: number
+          nome_empresa: string
+          telefone_empresa: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          criado_por?: string | null
-          descricao?: string | null
-          forma_pagamento?: Database["public"]["Enums"]["payment_method"] | null
+          custo_fixo_mensal?: number
+          email_empresa?: string
+          endereco_empresa?: string
           id?: string
-          order_id?: string | null
-          session_id: string
-          tipo: Database["public"]["Enums"]["cash_movement_type"]
-          valor: number
+          logo_url?: string
+          margem_custo_percentual?: number
+          nome_empresa?: string
+          telefone_empresa?: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
-          criado_por?: string | null
-          descricao?: string | null
-          forma_pagamento?: Database["public"]["Enums"]["payment_method"] | null
+          custo_fixo_mensal?: number
+          email_empresa?: string
+          endereco_empresa?: string
           id?: string
-          order_id?: string | null
-          session_id?: string
-          tipo?: Database["public"]["Enums"]["cash_movement_type"]
-          valor?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cash_movements_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cash_movements_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "cash_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cash_sessions: {
-        Row: {
-          aberto_em: string
-          aberto_por: string | null
-          fechado_em: string | null
-          fechado_por: string | null
-          id: string
-          observacoes: string | null
-          saldo_esperado: number | null
-          saldo_final: number | null
-          saldo_inicial: number
-          status: Database["public"]["Enums"]["cash_session_status"]
-        }
-        Insert: {
-          aberto_em?: string
-          aberto_por?: string | null
-          fechado_em?: string | null
-          fechado_por?: string | null
-          id?: string
-          observacoes?: string | null
-          saldo_esperado?: number | null
-          saldo_final?: number | null
-          saldo_inicial?: number
-          status?: Database["public"]["Enums"]["cash_session_status"]
-        }
-        Update: {
-          aberto_em?: string
-          aberto_por?: string | null
-          fechado_em?: string | null
-          fechado_por?: string | null
-          id?: string
-          observacoes?: string | null
-          saldo_esperado?: number | null
-          saldo_final?: number | null
-          saldo_inicial?: number
-          status?: Database["public"]["Enums"]["cash_session_status"]
+          logo_url?: string
+          margem_custo_percentual?: number
+          nome_empresa?: string
+          telefone_empresa?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
-      }
-      categories: {
-        Row: {
-          ativo: boolean
-          created_at: string
-          icone: string | null
-          id: string
-          nome: string
-          ordem: number
-          slug: string
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          created_at?: string
-          icone?: string | null
-          id?: string
-          nome: string
-          ordem?: number
-          slug: string
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          created_at?: string
-          icone?: string | null
-          id?: string
-          nome?: string
-          ordem?: number
-          slug?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      customers: {
-        Row: {
-          created_at: string
-          email: string | null
-          endereco: string | null
-          id: string
-          nome: string
-          observacoes: string | null
-          telefone: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          endereco?: string | null
-          id?: string
-          nome: string
-          observacoes?: string | null
-          telefone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          endereco?: string | null
-          id?: string
-          nome?: string
-          observacoes?: string | null
-          telefone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      order_items: {
-        Row: {
-          created_at: string
-          id: string
-          observacoes: string | null
-          order_id: string
-          preco_unitario: number
-          product_id: string | null
-          produto_nome: string
-          quantidade: number
-          subtotal: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          observacoes?: string | null
-          order_id: string
-          preco_unitario: number
-          product_id?: string | null
-          produto_nome: string
-          quantidade: number
-          subtotal: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          observacoes?: string | null
-          order_id?: string
-          preco_unitario?: number
-          product_id?: string | null
-          produto_nome?: string
-          quantidade?: number
-          subtotal?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      orders: {
-        Row: {
-          bairro: string | null
-          cliente_endereco: string | null
-          cliente_nome: string | null
-          cliente_telefone: string | null
-          created_at: string
-          customer_id: string | null
-          desconto: number
-          finalizado_em: string | null
-          forma_pagamento: Database["public"]["Enums"]["payment_method"]
-          horario_retirada: string | null
-          id: string
-          mesa_id: string | null
-          numero: number
-          observacoes: string | null
-          origem: Database["public"]["Enums"]["order_origin"]
-          pagamento_detalhes: Json | null
-          status: Database["public"]["Enums"]["order_status"]
-          subtotal: number
-          taxa_entrega: number
-          tipo: Database["public"]["Enums"]["order_type"]
-          total: number
-          updated_at: string
-        }
-        Insert: {
-          bairro?: string | null
-          cliente_endereco?: string | null
-          cliente_nome?: string | null
-          cliente_telefone?: string | null
-          created_at?: string
-          customer_id?: string | null
-          desconto?: number
-          finalizado_em?: string | null
-          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
-          horario_retirada?: string | null
-          id?: string
-          mesa_id?: string | null
-          numero?: number
-          observacoes?: string | null
-          origem?: Database["public"]["Enums"]["order_origin"]
-          pagamento_detalhes?: Json | null
-          status?: Database["public"]["Enums"]["order_status"]
-          subtotal?: number
-          taxa_entrega?: number
-          tipo?: Database["public"]["Enums"]["order_type"]
-          total?: number
-          updated_at?: string
-        }
-        Update: {
-          bairro?: string | null
-          cliente_endereco?: string | null
-          cliente_nome?: string | null
-          cliente_telefone?: string | null
-          created_at?: string
-          customer_id?: string | null
-          desconto?: number
-          finalizado_em?: string | null
-          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
-          horario_retirada?: string | null
-          id?: string
-          mesa_id?: string | null
-          numero?: number
-          observacoes?: string | null
-          origem?: Database["public"]["Enums"]["order_origin"]
-          pagamento_detalhes?: Json | null
-          status?: Database["public"]["Enums"]["order_status"]
-          subtotal?: number
-          taxa_entrega?: number
-          tipo?: Database["public"]["Enums"]["order_type"]
-          total?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_mesa_id_fkey"
-            columns: ["mesa_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_tables"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      products: {
-        Row: {
-          ativo: boolean
-          category_id: string | null
-          created_at: string
-          descricao: string | null
-          disponivel: boolean
-          id: string
-          imagem_url: string | null
-          nome: string
-          ordem: number
-          preco: number
-          preco_promo: number | null
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          category_id?: string | null
-          created_at?: string
-          descricao?: string | null
-          disponivel?: boolean
-          id?: string
-          imagem_url?: string | null
-          nome: string
-          ordem?: number
-          preco: number
-          preco_promo?: number | null
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          category_id?: string | null
-          created_at?: string
-          descricao?: string | null
-          disponivel?: boolean
-          id?: string
-          imagem_url?: string | null
-          nome?: string
-          ordem?: number
-          preco?: number
-          preco_promo?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       profiles: {
         Row: {
+          avatar_url: string
+          cor_tema: string
           created_at: string
-          email: string | null
-          id: string
-          nome: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          id: string
-          nome?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          nome?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      restaurant_tables: {
-        Row: {
-          capacidade: number
-          created_at: string
-          id: string
-          numero: number
-          observacao: string | null
-          status: Database["public"]["Enums"]["table_status"]
-          updated_at: string
-        }
-        Insert: {
-          capacidade?: number
-          created_at?: string
-          id?: string
-          numero: number
-          observacao?: string | null
-          status?: Database["public"]["Enums"]["table_status"]
-          updated_at?: string
-        }
-        Update: {
-          capacidade?: number
-          created_at?: string
-          id?: string
-          numero?: number
-          observacao?: string | null
-          status?: Database["public"]["Enums"]["table_status"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      settings: {
-        Row: {
-          aceita_pedidos_online: boolean
-          banner_url: string | null
-          cor_primaria: string | null
-          descricao: string | null
-          endereco: string | null
-          horario_funcionamento: string | null
-          id: number
-          logo_url: string | null
-          nome_estabelecimento: string
-          taxa_entrega: number
-          telefone: string | null
-          updated_at: string
-          whatsapp_suporte: string | null
-        }
-        Insert: {
-          aceita_pedidos_online?: boolean
-          banner_url?: string | null
-          cor_primaria?: string | null
-          descricao?: string | null
-          endereco?: string | null
-          horario_funcionamento?: string | null
-          id?: number
-          logo_url?: string | null
-          nome_estabelecimento?: string
-          taxa_entrega?: number
-          telefone?: string | null
-          updated_at?: string
-          whatsapp_suporte?: string | null
-        }
-        Update: {
-          aceita_pedidos_online?: boolean
-          banner_url?: string | null
-          cor_primaria?: string | null
-          descricao?: string | null
-          endereco?: string | null
-          horario_funcionamento?: string | null
-          id?: number
-          logo_url?: string | null
-          nome_estabelecimento?: string
-          taxa_entrega?: number
-          telefone?: string | null
-          updated_at?: string
-          whatsapp_suporte?: string | null
-        }
-        Relationships: []
-      }
-      support_categories: {
-        Row: {
-          ativo: boolean
-          created_at: string
-          icone: string | null
+          email: string
           id: string
           nome: string
-          ordem: number
-          slug: string
           updated_at: string
+          user_id: string
         }
         Insert: {
-          ativo?: boolean
+          avatar_url?: string
+          cor_tema?: string
           created_at?: string
-          icone?: string | null
-          id?: string
-          nome: string
-          ordem?: number
-          slug: string
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          created_at?: string
-          icone?: string | null
+          email?: string
           id?: string
           nome?: string
-          ordem?: number
-          slug?: string
           updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string
+          cor_tema?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
-      support_problems: {
+      service_orders: {
         Row: {
-          ativo: boolean
-          category_id: string
-          causas: string[]
+          aparelho: string
+          cliente: string
+          codigo: string
           created_at: string
-          descricao: string | null
-          doc_url: string | null
+          data_entrada: string
+          hora_final: string | null
+          hora_inicio: string | null
           id: string
-          imagem_url: string | null
-          observacoes: string | null
-          ordem: number
-          passos: string[]
-          titulo: string
-          updated_at: string
-          video_url: string | null
-        }
-        Insert: {
-          ativo?: boolean
-          category_id: string
-          causas?: string[]
-          created_at?: string
-          descricao?: string | null
-          doc_url?: string | null
-          id?: string
-          imagem_url?: string | null
-          observacoes?: string | null
-          ordem?: number
-          passos?: string[]
-          titulo: string
-          updated_at?: string
-          video_url?: string | null
-        }
-        Update: {
-          ativo?: boolean
-          category_id?: string
-          causas?: string[]
-          created_at?: string
-          descricao?: string | null
-          doc_url?: string | null
-          id?: string
-          imagem_url?: string | null
-          observacoes?: string | null
-          ordem?: number
-          passos?: string[]
-          titulo?: string
-          updated_at?: string
-          video_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "support_problems_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "support_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      support_ratings: {
-        Row: {
-          comentario: string | null
-          created_at: string
-          estrelas: number
-          ticket_id: string
-          user_id: string
-        }
-        Insert: {
-          comentario?: string | null
-          created_at?: string
-          estrelas: number
-          ticket_id: string
-          user_id: string
-        }
-        Update: {
-          comentario?: string | null
-          created_at?: string
-          estrelas?: number
-          ticket_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "support_ratings_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: true
-            referencedRelation: "support_tickets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      support_tickets: {
-        Row: {
-          categoria_nome: string | null
-          category_id: string | null
-          created_at: string
-          descricao_adicional: string | null
-          encaminhado_whatsapp: boolean
-          id: string
-          problem_id: string | null
-          problema_titulo: string | null
-          resolvido: boolean | null
+          marca: string
+          modelo: string
+          observacoes: string
+          problema: string
+          status: string
+          tecnico: string
+          telefone: string
           updated_at: string
           user_id: string
+          valor: number
         }
         Insert: {
-          categoria_nome?: string | null
-          category_id?: string | null
+          aparelho: string
+          cliente: string
+          codigo: string
           created_at?: string
-          descricao_adicional?: string | null
-          encaminhado_whatsapp?: boolean
+          data_entrada?: string
+          hora_final?: string | null
+          hora_inicio?: string | null
           id?: string
-          problem_id?: string | null
-          problema_titulo?: string | null
-          resolvido?: boolean | null
+          marca?: string
+          modelo?: string
+          observacoes?: string
+          problema?: string
+          status?: string
+          tecnico?: string
+          telefone?: string
           updated_at?: string
           user_id: string
+          valor?: number
         }
         Update: {
-          categoria_nome?: string | null
-          category_id?: string | null
+          aparelho?: string
+          cliente?: string
+          codigo?: string
           created_at?: string
-          descricao_adicional?: string | null
-          encaminhado_whatsapp?: boolean
+          data_entrada?: string
+          hora_final?: string | null
+          hora_inicio?: string | null
           id?: string
-          problem_id?: string | null
-          problema_titulo?: string | null
-          resolvido?: boolean | null
+          marca?: string
+          modelo?: string
+          observacoes?: string
+          problema?: string
+          status?: string
+          tecnico?: string
+          telefone?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "support_tickets_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "support_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "support_tickets_problem_id_fkey"
-            columns: ["problem_id"]
-            isOneToOne: false
-            referencedRelation: "support_problems"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          valor?: number
         }
         Relationships: []
       }
@@ -673,39 +157,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_staff: { Args: { _user_id: string }; Returns: boolean }
+      get_next_os_code: { Args: { p_user_id: string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "operador" | "caixa"
-      cash_movement_type: "entrada" | "saida" | "sangria" | "reforco" | "venda"
-      cash_session_status: "aberta" | "fechada"
-      order_origin: "pdv" | "mesa" | "online"
-      order_status:
-        | "novo"
-        | "confirmado"
-        | "em_preparo"
-        | "pronto"
-        | "saiu_entrega"
-        | "finalizado"
-        | "cancelado"
-        | "entregue"
-      order_type: "retirada" | "local" | "entrega"
-      payment_method:
-        | "pix"
-        | "dinheiro"
-        | "credito"
-        | "debito"
-        | "vale"
-        | "multiplo"
-        | "nao_definido"
-      table_status: "livre" | "ocupada" | "reservada"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -832,32 +287,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "operador", "caixa"],
-      cash_movement_type: ["entrada", "saida", "sangria", "reforco", "venda"],
-      cash_session_status: ["aberta", "fechada"],
-      order_origin: ["pdv", "mesa", "online"],
-      order_status: [
-        "novo",
-        "confirmado",
-        "em_preparo",
-        "pronto",
-        "saiu_entrega",
-        "finalizado",
-        "cancelado",
-        "entregue",
-      ],
-      order_type: ["retirada", "local", "entrega"],
-      payment_method: [
-        "pix",
-        "dinheiro",
-        "credito",
-        "debito",
-        "vale",
-        "multiplo",
-        "nao_definido",
-      ],
-      table_status: ["livre", "ocupada", "reservada"],
-    },
+    Enums: {},
   },
 } as const
