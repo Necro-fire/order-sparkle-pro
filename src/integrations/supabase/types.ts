@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      cash_movements: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          forma_pagamento: string | null
+          id: string
+          session_id: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          session_id: string
+          tipo: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          session_id?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_movements_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_sessions: {
+        Row: {
+          aberto_em: string
+          aberto_por: string | null
+          created_at: string
+          fechado_em: string | null
+          fechado_por: string | null
+          id: string
+          observacoes: string
+          saldo_esperado: number | null
+          saldo_final: number | null
+          saldo_inicial: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aberto_em?: string
+          aberto_por?: string | null
+          created_at?: string
+          fechado_em?: string | null
+          fechado_por?: string | null
+          id?: string
+          observacoes?: string
+          saldo_esperado?: number | null
+          saldo_final?: number | null
+          saldo_inicial?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          aberto_em?: string
+          aberto_por?: string | null
+          created_at?: string
+          fechado_em?: string | null
+          fechado_por?: string | null
+          id?: string
+          observacoes?: string
+          saldo_esperado?: number | null
+          saldo_final?: number | null
+          saldo_inicial?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           created_at: string
