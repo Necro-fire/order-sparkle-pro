@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fmtMoney } from "@/lib/format";
-import { Coffee, Plus, Trash2, ArrowRightLeft } from "lucide-react";
+import { Coffee, Plus, Trash2, ArrowRightLeft, QrCode } from "lucide-react";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 
 export const Route = createFileRoute("/_authenticated/admin/mesas")({
   component: MesasPage,
